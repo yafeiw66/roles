@@ -1,0 +1,53 @@
+---
+- name: centos post-install 
+  hosts: rkb
+  become: true
+  gather_facts: yes
+
+  tasks:
+    - name: Set timezone to America/Toronto
+      timezone:
+        name: America/Toronto
+      tags: rk
+
+    - name: install epel
+      yum:
+        name: epel-release
+        state: present
+      tags: yum
+      
+    - name: install vim enhanced
+      yum:
+        name: ['vim-enhanced']
+        state: present
+      tags: yum
+      
+    - name: Extract environment tar into home dir
+      unarchive:
+        src: /home/vagrant/env.tar
+        dest: /home/vagrant
+      tags: debug
+
+    - name: yum updating the system
+      yum:
+        name: "*"
+        state: latest
+
+    - name: install guest addition for virtual box
+    include_role:
+    - name: restart system to reboot to newest kernel
+      shell: "sleep 5 && reboot"
+      async: 1
+      poll: 0
+   
+    - name: wait for 10 seconds
+      pause:
+        seconds: 10
+   
+    - name: wait for the system to reboot
+      wait_for_connection:
+        connect_timeout: 20
+        sleep: 5
+        delay: 5
+        timeout: 60
+
